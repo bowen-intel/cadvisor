@@ -54,6 +54,13 @@ func newCollector(id string, getContainerPids func() ([]string, error), interval
 func (c *collector) setup() error {
 	var err error
 	c.resctrlPath, err = prepareMonitoringGroup(c.id, c.getContainerPids, c.inHostNamespace)
+	if err != nil {
+		if strings.HasSuffix(err.Error(), ".scope") {
+			return err
+		} else {
+			return nil
+		}
+	}
 
 	if c.interval != noInterval {
 		if err != nil {

@@ -251,7 +251,9 @@ func arePIDsInGroup(path string, pids []string, exclusive bool) (bool, error) {
 	}
 
 	any := false
+	// ps got process id from /proc
 	for _, pid := range pids {
+		// in the resctrl tasks file(include threads)
 		_, ok := tasks[pid]
 		if !ok {
 			// There are missing pids within group.
@@ -266,6 +268,7 @@ func arePIDsInGroup(path string, pids []string, exclusive bool) (bool, error) {
 	// Check if there should be only passed pids in group.
 	if exclusive {
 		if len(tasks) != len(pids) {
+			fmt.Println("tasks: ", tasks, " pids: ", pids)
 			return false, fmt.Errorf("group should have container pids only")
 		}
 	}
