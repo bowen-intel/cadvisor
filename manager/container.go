@@ -268,6 +268,22 @@ func (cd *containerData) getPsOutput(inHostNamespace bool, format string) ([]byt
 	return out, err
 }
 
+// Return output for ps command in host /proc with specified format(get tid)
+func (cd *containerData) getPsOutput2(inHostNamespace bool, format string) ([]byte, error) {
+	args := []string{}
+	command := "ps"
+	if !inHostNamespace {
+		command = "/usr/sbin/chroot"
+		args = append(args, "/rootfs", "ps")
+	}
+	args = append(args, "-e", "-o", format, "-L")
+	out, err := exec.Command(command, args...).Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute %q command: %v", command, err)
+	}
+	return out, err
+}
+
 // Get pids of processes in this container.
 // A slightly lighterweight call than GetProcessList if other details are not required.
 func (cd *containerData) getContainerPids(inHostNamespace bool) ([]string, error) {
@@ -746,4 +762,31 @@ func (cd *containerData) updateSubcontainers() error {
 	defer cd.lock.Unlock()
 	cd.info.Subcontainers = subcontainers
 	return nil
+}
+
+// Get tids of processes in this container.
+func (cd *containerData) getContainerTids(inHostNamespace bool) ([]string, error) {
+	format := "tid,cgroup"
+	out, err := cd.getPsOutput2(inHostNamespace, format)
+	if err != nil {
+		return nil, err
+	}
+	tids := []string{}
+	expectedFields := 2
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines[1:] {
+		if len(line) == 0 {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < expectedFields {
+			return nil, fmt.Errorf("expected at least %d fields, found %d: output: %q", expectedFields, len(fields), line)
+		}
+		tid := fields[0]
+		cgroup := cd.getCgroupPath(fields[1])
+		if cd.info.Name == cgroup {
+			tids = append(tids, tid)
+		}
+	}
+	return tids, nil
 }

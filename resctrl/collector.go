@@ -57,9 +57,8 @@ func (c *collector) setup() error {
 	if err != nil {
 		if strings.HasSuffix(err.Error(), ".scope") {
 			return err
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	if c.interval != noInterval {

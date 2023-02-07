@@ -268,7 +268,22 @@ func arePIDsInGroup(path string, pids []string, exclusive bool) (bool, error) {
 	// Check if there should be only passed pids in group.
 	if exclusive {
 		if len(tasks) != len(pids) {
-			fmt.Println("tasks: ", tasks, " pids: ", pids)
+			taskExist := make(map[string]bool)
+			taskSpe := []string{}
+			pidSpe := []string{}
+			for _, pid := range pids {
+				if _, ok := tasks[pid]; !ok {
+					pidSpe = append(pidSpe, pid)
+				} else {
+					taskExist[pid] = true
+				}
+			}
+			for k := range tasks {
+				if _, ok := taskExist[k]; !ok {
+					taskSpe = append(taskSpe, k)
+				}
+			}
+			fmt.Printf("task spe: %v, pid spe: %v\n", taskSpe, pidSpe)
 			return false, fmt.Errorf("group should have container pids only")
 		}
 	}
