@@ -42,6 +42,8 @@ const (
 	cpusListFileName         = "cpus_list"
 	schemataFileName         = "schemata"
 	tasksFileName            = "tasks"
+	modeFileName             = "mode"
+	sizeFileName             = "size"
 	infoDirName              = "info"
 	monDataDirName           = "mon_data"
 	monGroupsDirName         = "mon_groups"
@@ -72,6 +74,8 @@ var (
 		monGroupsDirName: {},
 		schemataFileName: {},
 		tasksFileName:    {},
+		modeFileName:     {},
+		sizeFileName:     {},
 	}
 )
 
@@ -258,6 +262,7 @@ func arePIDsInGroup(path string, pids []string, exclusive bool) (bool, error) {
 		if !ok {
 			// There are missing pids within group.
 			if any {
+				fmt.Printf("pid %q is missing in %q group\n", pid, path)
 				return false, fmt.Errorf("there should be all pids in group")
 			}
 			return false, nil
